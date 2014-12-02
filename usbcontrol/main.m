@@ -15,17 +15,17 @@
 
 enum CommandAction {
     ACTION_LIST,
-    ACTION_ENABLE,
-    ACTION_DISABLE
+    ACTION_RESUME,
+    ACTION_SUSPEND
 };
 
 int usage(const char *binary) {
     NSString *binaryString = [NSString stringWithCString:binary encoding:NSUTF8StringEncoding];
     NSString *binaryName = [binaryString lastPathComponent];
-    NSLog(@"Usage: %@ list|enable|disable [--vid=0x1234] [--pid=0x5678] [--location=0x123456789]", binaryName);
+    NSLog(@"Usage: %@ list|suspend|resume [--vid=0x1234] [--pid=0x5678] [--location=0x123456789]", binaryName);
     NSLog(@" ");
-    NSLog(@"Lists, enables, or disables USB devices. Enable & disable require a filter.");
-    NSLog(@"Vendor ID and product ID must be used together.");
+    NSLog(@"Lists, suspends, or resumes USB devices. Suspend & resume require a filter.");
+    NSLog(@"VID and PID must be used together. Location can be used with or without VID+PID.");
     return -1;
 }
 
@@ -76,7 +76,7 @@ int perform(enum CommandAction action, NSDictionary *filter) {
             NSLog(@"vid=0x%04x pid=0x%04x release=0x%04x location=0x%x vendor=\"%@\" product=\"%@\" serial=\"%@\"", [props[@kUSBVendorID] intValue], [props[@kUSBProductID] intValue], [props[@kUSBDeviceReleaseNumber] intValue], locationID, props[@kUSBVendorString], props[@kUSBProductString], props[@kUSBSerialNumberString]);
         }
         
-        else if (action == ACTION_ENABLE || action == ACTION_DISABLE) {
+        else if (action == ACTION_RESUME || action == ACTION_SUSPEND) {
             IOReturn ret = (*usbDeviceInterface)->USBDeviceOpenSeize(usbDeviceInterface);
             if (ret == kIOReturnExclusiveAccess) {
                 usleep(100000);
@@ -84,7 +84,7 @@ int perform(enum CommandAction action, NSDictionary *filter) {
             }
             
             if (ret == kIOReturnSuccess) {
-                if (action == ACTION_DISABLE) {
+                if (action == ACTION_SUSPEND) {
                     ret = (*usbDeviceInterface)->USBDeviceSuspend(usbDeviceInterface, true);
                     if (ret != kIOReturnSuccess) {
                         NSLog(@"Error: Unable to suspend device at location 0x%04x.", locationID);
@@ -172,12 +172,12 @@ int main(int argc, const char * argv[]) {
         if ([action isEqualToString:@"list"])
             return perform(ACTION_LIST, params);
         
-        BOOL isEnableCmd = [action isEqualToString:@"enable"];
-        BOOL isDisableCmd = !isEnableCmd && [action isEqualToString:@"disable"];
-        if (isEnableCmd || isDisableCmd) {
+        BOOL isResumeCmd = [action isEqualToString:@"resume"];
+        BOOL isSuspendCmd = !isResumeCmd && [action isEqualToString:@"suspend"];
+        if (isResumeCmd || isSuspendCmd) {
             if (providedParamKeys.count == 0)
                 return usage(argv[0]);
-            return perform(isEnableCmd ? ACTION_ENABLE : ACTION_DISABLE, params);
+            return perform(isResumeCmd ? ACTION_RESUME : ACTION_SUSPEND, params);
         }
         
         return usage(argv[0]);

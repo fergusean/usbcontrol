@@ -2,14 +2,14 @@ usbcontrol
 ==========
 List, suspend, and resume USB devices on OS X from the command line based on vendor and product ID and/or location ID. The location ID, to quote , "is a 32 bit number which is unique among all USB devices in the system, and which will not change on a system reboot unless the topology of the bus itself changes".
 
-Suspended devices act as if they're not plugged into your computer. As such, the power to the USB port is disabled. HID devices appear to reconnect as soon as the process terminates, but all other devices tested remain "disconnected" until either physically re-plugged or re-enabled via usbcontrol.
+Suspended devices act as if they're not plugged into your computer. As such, the power to the USB port is turned off. HID devices appear to resume as soon as the process terminates, but all other devices tested remain suspended until either physically re-plugged or resumed via usbcontrol.
 
 Usage
 ==========
-usbcontrol list|enable|disable [--vid=0x1234] [--pid=0x5678] [--location=0x123456789]
+usbcontrol list|suspend|resume [--vid=0x1234] [--pid=0x5678] [--location=0x123456789]
  
-Lists, enables, or disables USB devices. Enable & disable require a filter.
-Vendor ID and product ID must be used together.
+Lists, suspends, or resumes USB devices. Suspend & resume require a filter.
+VID and PID must be used together. Location can be used with or without VID+PID.
 
 Sample List Output
 ==========
